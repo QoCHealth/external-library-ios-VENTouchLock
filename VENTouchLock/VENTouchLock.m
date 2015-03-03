@@ -175,6 +175,7 @@ static NSString *const VENTouchLockUserDefaultsKeyTouchIDActivated = @"VENTouchL
 - (void)lockFromBackground:(BOOL)fromBackground
 {
     if (self.splashViewControllerClass != NULL) {
+        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
         VENTouchLockSplashViewController *splashViewController = [[self.splashViewControllerClass alloc] init];
         if ([splashViewController isKindOfClass:[VENTouchLockSplashViewController class]]) {
             UIWindow *mainWindow = [[UIApplication sharedApplication].windows firstObject];
@@ -212,6 +213,10 @@ static NSString *const VENTouchLockUserDefaultsKeyTouchIDActivated = @"VENTouchL
     }
 }
 
+- (void)forceLockFromForeground{
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+    [self applicationDidFinishLaunching:nil];
+}
 
 #pragma mark - NSNotifications
 
