@@ -127,37 +127,48 @@ static NSString *const VENTouchLockUserDefaultsKeyTouchIDActivated = @"VENTouchL
 
 - (void)requestTouchIDWithCompletion:(void (^)(VENTouchLockTouchIDResponse))completionBlock reason:(NSString *)reason
 {
+    static BOOL isTouchIDPresented = NO;
     if ([[self class] canUseTouchID]) {
-        LAContext *context = [[LAContext alloc] init];
-        context.localizedFallbackTitle = NSLocalizedString(@"Enter Passcode", nil);
-        [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
-                localizedReason:reason
-                          reply:^(BOOL success, NSError *error) {
-                              dispatch_async(dispatch_get_main_queue(), ^{
-                                  if (success) {
-                                      if (completionBlock) {
-                                          completionBlock(VENTouchLockTouchIDResponseSuccess);
+        if (!isTouchIDPresented) {
+            isTouchIDPresented = YES;
+            LAContext *context = [[LAContext alloc] init];
+            context.localizedFallbackTitle = NSLocalizedString(@"Enter Passcode", nil);
+            [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
+                    localizedReason:reason
+                              reply:^(BOOL success, NSError *error) {
+                                  isTouchIDPresented = NO;
+                                  dispatch_async(dispatch_get_main_queue(), ^{
+                                      if (success) {
+                                          if (completionBlock) {
+                                              completionBlock(VENTouchLockTouchIDResponseSuccess);
+                                          }
                                       }
-                                  }
-                                  else {
-                                      if (completionBlock) {
+                                      else {
                                           VENTouchLockTouchIDResponse response;
                                           switch (error.code) {
                                               case LAErrorUserFallback:
                                                   response = VENTouchLockTouchIDResponseUsePasscode;
                                                   break;
+                                              case LAErrorAuthenticationFailed: // when TouchID max retry is reached, fallbacks to passcode
                                               case LAErrorUserCancel:
-                                                  response = VENTouchLockTouchIDResponseCanceled;
+                                                  response = (self.appearance.touchIDCancelPresentsPasscodeViewController) ? VENTouchLockTouchIDResponseUsePasscode : VENTouchLockTouchIDResponseCanceled;
                                                   break;
                                               default:
                                                   response = VENTouchLockTouchIDResponseUndefined;
                                                   break;
                                           }
-                                          completionBlock(response);
+                                          if (completionBlock) {
+                                              completionBlock(response);
+                                          }
                                       }
-                                  }
-                              });
-                          }];
+                                  });
+                              }];
+        }
+        else {
+            if (completionBlock) {
+                completionBlock(VENTouchLockTouchIDResponsePromptAlreadyPresent);
+            }
+        }
     }
 }
 
@@ -194,10 +205,8 @@ static NSString *const VENTouchLockUserDefaultsKeyTouchIDActivated = @"VENTouchL
                 [mainWindow addSubview:self.snapshotView];
             }
             dispatch_async(dispatch_get_main_queue(), ^{
-                [rootViewController presentViewController:displayController animated:NO completion:^{
-                    self.backgroundLockVisible = YES;
-                    [splashViewController showUnlockAnimated:NO];
-                }];
+                self.backgroundLockVisible = YES;
+                [rootViewController presentViewController:displayController animated:NO completion:nil];
             });
         }
     }
