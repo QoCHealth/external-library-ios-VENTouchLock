@@ -4,11 +4,10 @@
 #import "UIViewController+VENTouchLock.h"
 #import "VENTouchLock.h"
 
-static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
+//static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
 
 @interface VENTouchLockPasscodeViewController () <UITextFieldDelegate>
 
-@property (strong, nonatomic) UITextField *invisiblePasscodeField;
 @property (assign, nonatomic) BOOL shouldIgnoreTextFieldDelegateCalls;
 
 @end
@@ -36,35 +35,34 @@ static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
 
     self.view.backgroundColor = [self.touchLock appearance].passcodeViewControllerBackgroundColor;
+    [self configurePasscodeView];
     [self configureInvisiblePasscodeField];
     [self configureNavigationItems];
-    [self configurePasscodeView];
 }
 
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    if (![self.invisiblePasscodeField isFirstResponder]) {
-        [self.invisiblePasscodeField becomeFirstResponder];
+    if (![self.passcodeView.pwTextField isFirstResponder]) {
+        [self.passcodeView.pwTextField becomeFirstResponder];
     }
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
-    if ([self.invisiblePasscodeField isFirstResponder]) {
-        [self.invisiblePasscodeField resignFirstResponder];
+    if ([self.passcodeView.pwTextField isFirstResponder]) {
+        [self.passcodeView.pwTextField resignFirstResponder];
     }
 }
 
 - (void)configureInvisiblePasscodeField
 {
-    self.invisiblePasscodeField = [[UITextField alloc] init];
-    self.invisiblePasscodeField.keyboardType = UIKeyboardTypeNumberPad;
-    self.invisiblePasscodeField.secureTextEntry = YES;
-    self.invisiblePasscodeField.delegate = self;
-    [self.invisiblePasscodeField addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
-    [self.view addSubview:self.invisiblePasscodeField];
+    self.passcodeView.pwTextField.secureTextEntry = YES;
+    self.passcodeView.pwTextField.delegate = self;
+    [self.passcodeView.pwTextField addTarget:self action:@selector(textFieldDidChange:) forControlEvents:UIControlEventEditingChanged];
+    [self.passcodeView.unlockButton setEnabled:NO];
+    [self.passcodeView.unlockButton addTarget:self action:@selector(hitUnlockButton:) forControlEvents:UIControlEventTouchUpInside];
 }
 
 - (void)configureNavigationItems
@@ -88,7 +86,7 @@ static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
 
 - (void)finishWithResult:(BOOL)success animated:(BOOL)animated
 {
-    [self.invisiblePasscodeField resignFirstResponder];
+    [self.passcodeView.pwTextField resignFirstResponder];
     if (self.willFinishWithResult) {
         self.willFinishWithResult(success);
     } else {
@@ -101,12 +99,9 @@ static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
     return [super ventouchlock_embeddedInNavigationController];
 }
 
-- (void)keyboardWillShow:(NSNotification *)notification
-{
-    CGRect newKeyboardFrame = [(NSValue *)[notification.userInfo objectForKey:@"UIKeyboardFrameEndUserInfoKey"] CGRectValue];
-        CGFloat passcodeLockViewHeight = CGRectGetHeight(self.view.frame) - CGRectGetHeight(newKeyboardFrame);
-        CGFloat passcodeLockViewWidth = CGRectGetWidth(self.view.frame);
-    self.passcodeView.frame = CGRectMake(0, 0, passcodeLockViewWidth, passcodeLockViewHeight);
+- (void)hitUnlockButton:(id)sender{
+    [self performSelector:@selector(enteredPasscode:) withObject:self.passcodeView.pwTextField.text afterDelay:0.3];
+//    [self enteredPasscode:self.passcodeView.pwTextField.text];
 }
 
 - (void)enteredPasscode:(NSString *)passcode
@@ -116,11 +111,27 @@ static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
 
 - (void)clearPasscode
 {
-    UITextField *textField = self.invisiblePasscodeField;
-    textField.text = @"";
-    for (VENTouchLockPasscodeCharacterView *characterView in self.passcodeView.characters) {
-        characterView.isEmpty = YES;
-    }
+//    UITextField *textField = self.invisiblePasscodeField;
+    self.passcodeView.pwTextField.text = @"";
+    [self.passcodeView.unlockButton setEnabled:NO];
+//    for (VENTouchLockPasscodeCharacterView *characterView in self.passcodeView.characters) {
+//        characterView.isEmpty = YES;
+//    }
+}
+
+#pragma mark - UIKeyboard Delegate
+
+- (void)keyboardWillShow:(NSNotification *)notification
+{
+    CGRect newKeyboardFrame = [(NSValue *)[notification.userInfo objectForKey:@"UIKeyboardFrameEndUserInfoKey"] CGRectValue];
+    CGFloat passcodeLockViewHeight = CGRectGetHeight(self.view.frame) - CGRectGetHeight(newKeyboardFrame);
+    CGFloat passcodeLockViewWidth = CGRectGetWidth(self.view.frame);
+    self.passcodeView.frame = CGRectMake(0, 0, passcodeLockViewWidth, passcodeLockViewHeight);
+}
+
+- (BOOL)textFieldShouldReturn:(UITextField *)textField{
+    [self hitUnlockButton:nil];
+    return YES;
 }
 
 
@@ -131,20 +142,21 @@ static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
     if (self.shouldIgnoreTextFieldDelegateCalls) {
         return NO;
     }
-    NSString *newString = [textField.text stringByReplacingCharactersInRange:range withString:string];
-    NSUInteger newLength = [newString length];
-    if (newLength > VENTouchLockViewControllerPasscodeLength) {
-        [self.passcodeView shakeAndVibrateCompletion:nil];
-        textField.text = @"";
-        return NO;
-    }
-    else {
-        for (VENTouchLockPasscodeCharacterView *characterView in self.passcodeView.characters) {
-            NSUInteger index = [self.passcodeView.characters indexOfObject:characterView];
-            characterView.isEmpty = (index >= newLength);
-        }
-        return YES;
-    }
+//    NSString *newString = [textField.text stringByReplacingCharactersInRange:range withString:string];
+//    NSUInteger newLength = [newString length];
+//    if (newLength > VENTouchLockViewControllerPasscodeLength) {
+//        [self.passcodeView shakeAndVibrateCompletion:nil];
+//        textField.text = @"";
+//        return NO;
+//    }
+//    else {
+//        for (VENTouchLockPasscodeCharacterView *characterView in self.passcodeView.characters) {
+//            NSUInteger index = [self.passcodeView.characters indexOfObject:characterView];
+//            characterView.isEmpty = (index >= newLength);
+//        }
+//        return YES;
+//    }
+    return YES;
 }
 
 - (void)textFieldDidChange:(UITextField *)textField
@@ -154,12 +166,13 @@ static const NSInteger VENTouchLockViewControllerPasscodeLength = 4;
     }
     NSString *newString = textField.text;
     NSUInteger newLength = [newString length];
-
-    if (newLength == VENTouchLockViewControllerPasscodeLength) {
-        self.shouldIgnoreTextFieldDelegateCalls = YES;
-        textField.text = @"";
-        [self performSelector:@selector(enteredPasscode:) withObject:newString afterDelay:0.3];
-    }
+    [self.passcodeView.unlockButton setEnabled:newLength];
+//
+//    if (newLength == VENTouchLockViewControllerPasscodeLength) {
+//        self.shouldIgnoreTextFieldDelegateCalls = YES;
+//        textField.text = @"";
+//        [self performSelector:@selector(enteredPasscode:) withObject:newString afterDelay:0.3];
+//    }
 }
 
 @end
