@@ -8,7 +8,7 @@ Pod::Spec.new do |s|
   s.homepage     = 'https://www.github.com/venmo/VENTouchLock'
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
   s.author       = { 'Venmo' => 'ios@venmo.com'}
-  s.source       = { :git => 'https://github.com/venmo/VENTouchLock.git', :tag => "v#{s.version}"}
+  s.source       = { :git => 'https://github.com/normKei/VENTouchLock.git', :tag => "v#{s.version}"}
   s.source_files = 'VENTouchLock/**/*.{h,m}'
   s.resources   = ["VENTouchLock/**/*.{xib}"]
   s.dependency 'SSKeychain', '~> 1.0'
