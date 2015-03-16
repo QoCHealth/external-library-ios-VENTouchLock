@@ -4,14 +4,11 @@
 #import "VENTouchLockSplashViewController.h"
 #import "VENTouchLockAppearance.h"
 
-//comment?
-
 typedef NS_ENUM(NSUInteger, VENTouchLockTouchIDResponse) {
     VENTouchLockTouchIDResponseUndefined,
     VENTouchLockTouchIDResponseSuccess,
     VENTouchLockTouchIDResponseUsePasscode,
     VENTouchLockTouchIDResponseCanceled,
-    VENTouchLockTouchIDResponsePromptAlreadyPresent,
 };
 
 @interface VENTouchLock : NSObject
