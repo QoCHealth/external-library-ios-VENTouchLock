@@ -5,10 +5,8 @@
 @interface VENTouchLockPasscodeView ()
 
 @property (weak, nonatomic) IBOutlet UILabel *titleLabel;
-@property (weak, nonatomic) IBOutlet VENTouchLockPasscodeCharacterView *firstCharacter;
-@property (weak, nonatomic) IBOutlet VENTouchLockPasscodeCharacterView *secondCharacter;
-@property (weak, nonatomic) IBOutlet VENTouchLockPasscodeCharacterView *thirdCharacter;
-@property (weak, nonatomic) IBOutlet VENTouchLockPasscodeCharacterView *fourthCharacter;
+
+
 
 @end
 
@@ -27,10 +25,6 @@
         _titleColor = titleColor;
         _titleLabel.textColor = titleColor;
         _characterColor = characterColor;
-        _characters = @[_firstCharacter, _secondCharacter, _thirdCharacter, _fourthCharacter];
-        for (VENTouchLockPasscodeCharacterView *characterView in _characters) {
-            characterView.fillColor = characterColor;
-        }
     }
     return self;
 }
@@ -84,9 +78,6 @@
 - (void)setCharacterColor:(UIColor *)characterColor
 {
     _characterColor = characterColor;
-    for (VENTouchLockPasscodeCharacterView *characterView in self.characters) {
-        characterView.fillColor = characterColor;
-    }
 }
 
 - (void)setTitleColor:(UIColor *)titleColor
