@@ -8,11 +8,6 @@
 @property (strong, nonatomic) NSString *title;
 
 /**
- An array of the passcode character subviews.
- */
-@property (strong, nonatomic) NSArray *characters;
-
-/**
  The color of the title text.
  */
 @property (strong, nonatomic) UIColor *titleColor;
@@ -21,6 +16,9 @@
  The color of the passcode characters.
  */
 @property (strong, nonatomic) UIColor *characterColor;
+
+@property (weak, nonatomic) IBOutlet UITextField *pwTextField;
+@property (unsafe_unretained, nonatomic) IBOutlet UIButton *unlockButton;
 
 /**
  Creates a passcode view controller with the given title and frame.
