@@ -56,6 +56,15 @@
     }
 }
 
+// fix the problem where passcode view is not centered 
+- (void)viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    
+    CGRect f = self.passcodeView.frame;
+    f.origin.x = (self.view.frame.size.width - f.size.width) / 2.0f;
+    self.passcodeView.frame = f;
+}
+
 - (void)configureInvisiblePasscodeField
 {
     self.passcodeView.pwTextField.secureTextEntry = YES;
